@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230D1210'/><path d='M12 3.2L19.5 7.4V16.6L12 20.8L4.5 16.6V7.4L12 3.2Z' stroke='%23C9A24B' stroke-width='1.7' stroke-linejoin='round' fill='none'/><path d='M8.3 12.3L10.7 14.9L15.6 9.2' stroke='%23E3BE6E' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <title>{% block title %}VERAX{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:           #0B0E14;
+      --sidebar:      #10141C;
+      --sidebar-bd:   rgba(255,255,255,0.07);
+      --card:         #131822;
+      --card-hover:   #171D29;
+      --card-bd:      rgba(255,255,255,0.08);
+      --surface:      rgba(255,255,255,0.03);
+      --divider:      rgba(255,255,255,0.08);
+      --text:         #EDEFF3;
+      --text-2:       #9AA3B5;
+      --text-3:       #5B6472;
+      --indigo:       #8B5CF6;
+      --indigo-bright:#A78BFA;
+      --coral:        #F0473F;
+      --coral-dim:    rgba(240,71,63,0.13);
+      --amber:        #F5A524;
+      --amber-dim:    rgba(245,165,36,0.13);
+      --mint:         #17C56B;
+      --mint-dim:     rgba(23,197,107,0.13);
+      --violet:       #8B5CF6;
+      --hover-bd:     rgba(255,255,255,0.16);
+      --hover-bg:     rgba(255,255,255,0.04);
+      --input-bg:     rgba(255,255,255,0.05);
+      --track:        rgba(255,255,255,0.08);
+      --shadow-card:  none;
+    }
+    /* Light theme — swap the surface/text tokens only; brand + risk accent
+       colors (blue/coral/amber/mint) stay identical in both themes. */
+    [data-theme="light"] {
+      --bg:           #F5F7FA;
+      --sidebar:      #FFFFFF;
+      --sidebar-bd:   rgba(15,23,42,0.08);
+      --card:         #FFFFFF;
+      --card-hover:   #F5F7FA;
+      --card-bd:      rgba(15,23,42,0.09);
+      --surface:      #EEF1F5;
+      --divider:      rgba(15,23,42,0.08);
+      --text:         #10141C;
+      --text-2:       #48505F;
+      --text-3:       #8992A3;
+      --indigo:       #7C3AED;
+      --indigo-bright:#8B5CF6;
+      --coral:        #DC3730;
+      --coral-dim:    rgba(220,55,48,0.10);
+      --amber:        #C87F0A;
+      --amber-dim:    rgba(200,127,10,0.10);
+      --mint:         #109050;
+      --mint-dim:     rgba(16,144,80,0.10);
+      --hover-bd:     rgba(15,23,42,0.16);
+      --hover-bg:     rgba(15,23,42,0.035);
+      --input-bg:     rgba(15,23,42,0.03);
+      --track:        rgba(15,23,42,0.08);
+      --shadow-card:  0 1px 2px rgba(15,23,42,0.05);
+    }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; line-height: 1.6;
+      background: var(--bg); color: var(--text);
+      display: flex; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .mono { font-family: 'Courier New', monospace; font-size: 13px; }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 226px; flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--sidebar-bd);
+      display: flex; flex-direction: column;
+      height: 100vh; position: sticky; top: 0;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .brand-wordmark {
+      font-family: 'Inter', sans-serif;
+      font-size: 19px; font-weight: 800;
+      color: var(--text); letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .brand-mark { color: var(--indigo-bright); flex-shrink: 0; }
+    .brand-sub {
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.8px;
+      color: var(--text-3); margin-top: 5px;
+    }
+    .sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .nav-section {
+      font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-3); padding: 10px 20px 4px;
+      margin-top: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: 13.5px; font-weight: 500;
+      color: var(--text-2); text-decoration: none;
+      border-left: 2px solid transparent;
+      border-radius: 0;
+      transition: color .12s, background .12s;
+      position: relative;
+    }
+    .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+    .nav-item:hover { color: var(--text); background: var(--hover-bg); }
+    .nav-item.active {
+      color: var(--indigo-bright);
+      border-left-color: var(--indigo-bright);
+      background: rgba(139,92,246,0.1);
+    }
+    .nav-item.active svg { stroke: var(--indigo-bright); }
+    .sidebar-footer {
+      border-top: 1px solid var(--divider);
+      padding: 16px 20px;
+    }
+    .user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+    .user-av {
+      width: 30px; height: 30px; flex-shrink: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--indigo), #D4AF63);
+      color: white; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .user-name  { font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+    .user-role  { font-size: 10.5px; color: var(--text-3); }
+    .signout {
+      font-size: 12px; color: var(--text-3); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; transition: color .12s;
+    }
+    .signout svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-linecap: round; stroke-width: 1.6; }
+    .signout:hover { color: var(--coral); }
+
+    /* ─── MAIN ─── */
+    main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 36px; height: 56px; flex-shrink: 0;
+      border-bottom: 1px solid var(--divider);
+      background: var(--sidebar);
+    }
+    .topbar-left  { display: flex; flex-direction: column; }
+    .topbar-ctx   { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-3); }
+    .topbar-title { font-size: 14.5px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; margin-top: 2px; }
+    .live-pill {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(23,197,107,0.08); border: 1px solid rgba(23,197,107,0.2);
+      border-radius: 99px; padding: 4px 14px;
+      font-size: 12px; font-weight: 600; color: var(--mint);
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+    /* ─── PAGE ─── */
+    .page-wrap { padding: 32px 36px; flex: 1; overflow-y: auto; }
+
+    /* ─── HEADINGS ─── */
+    .page-eyebrow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.8px; color: var(--indigo-bright); margin-bottom: 6px;
+    }
+    .page-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 34px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.5px; line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    .page-sub { font-size: 13.5px; color: var(--text-2); margin-bottom: 28px; }
+
+    /* ─── STAT TILES ─── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
+    .stat-tile {
+      background: var(--card); border: 1px solid var(--card-bd);
+      border-radius: 12px; padding: 22px 24px;
+      position: relative; overflow: hidden;
+      transition: border-color .18s, transform .18s, box-shadow .18s;
+      box-shadow: var(--shadow-card);
+      text-decoration: none; display: block; cursor: pointer;
+    }
+    .stat-tile::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .stat-tile:hover { transform: translateY(-3px); border-color: var(--hover-bd); }
+    .stat-tile.tile-coral:hover  { box-shadow: 0 10px 28px -8px rgba(240,71,63,0.4); }
+    .stat-tile.tile-amber:hover  { box-shadow: 0 10px 28px -8px rgba(245,165,36,0.4); }
+    .stat-tile.tile-mint:hover   { box-shadow: 0 10px 28px -8px rgba(23,197,107,0.4); }
+    .stat-tile.tile-indigo:hover { box-shadow: 0 10px 28px -8px rgba(139,92,246,0.4); }
+    .stat-tile-top   { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); margin-bottom: 14px; }
+    .stat-tile-val   { font-family: 'Inter', sans-serif; font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+    .stat-tile-sub   { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+    .tile-indigo::after { background: var(--indigo-bright); }
+    .tile-coral::after  { background: var(--coral); }
+    .tile-mint::after   { background: var(--mint); }
+    .tile-amber::after  { background: var(--amber); }
+    .tile-violet::after { background: var(--violet); }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--card); border: 1px solid var(--card-bd);
+      border-radius: 12px; overflow: hidden;
+      transition: border-color .18s, transform .18s, box-shadow .18s;
+      box-shadow: var(--shadow-card);
+    }
+    .card:hover { border-color: var(--hover-bd); }
+    .card.interactive { cursor: pointer; }
+    .card.interactive:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(139,92,246,0.3); }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px; border-bottom: 1px solid var(--divider);
+    }
+    .card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-3); }
+    .card-action { font-size: 12px; color: var(--text-3); text-decoration: none; transition: color .12s; }
+    .card-action:hover { color: var(--indigo-bright); }
+    .card-body { padding: 22px; }
+
+    /* ─── TABLES ─── */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-3);
+      padding: 10px 22px; text-align: left;
+      border-bottom: 1px solid var(--divider);
+    }
+    tbody td { padding: 13px 22px; font-size: 13px; border-bottom: 1px solid var(--divider); color: var(--text-2); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.clickable { cursor: pointer; transition: background .1s; }
+    tbody tr.clickable:hover td { background: var(--hover-bg); color: var(--text); }
+
+    /* ─── BADGES ─── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+      padding: 3px 10px; border-radius: 5px; text-transform: uppercase;
+    }
+    .badge-pip { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+    .badge.HIGH   { background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(240,71,63,0.2); }
+    .badge.HIGH   .badge-pip { background: var(--coral); }
+    .badge.MEDIUM { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,165,36,0.2); }
+    .badge.MEDIUM .badge-pip { background: var(--amber); }
+    .badge.LOW    { background: var(--mint-dim);  color: var(--mint);  border: 1px solid rgba(23,197,107,0.2); }
+    .badge.LOW    .badge-pip { background: var(--mint); }
+
+    /* ─── DATA ROWS ─── */
+    .data-row {
+      display: grid; grid-template-columns: 200px 1fr; gap: 16px;
+      align-items: baseline; padding: 13px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .data-row:last-child { border-bottom: none; }
+    .data-key { font-size: 13px; color: var(--text); font-weight: 500; }
+    .data-val { font-size: 13px; color: var(--text-2); }
+
+    /* ─── PLUS LIST ─── */
+    .plus-list { list-style: none; }
+    .plus-list li {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 11px 0; font-size: 13.5px; color: var(--text-2);
+      border-bottom: 1px solid var(--divider);
+    }
+    .plus-list li:last-child { border-bottom: none; }
+    .plus-list li::before {
+      content: '✓'; color: var(--indigo-bright);
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+      width: 15px; height: 15px; border-radius: 4px;
+      background: rgba(139,92,246,0.12);
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .plus-list a { color: inherit; text-decoration: none; transition: color .12s; }
+    .plus-list a:hover { color: var(--text); }
+
+    /* ─── PROGRESS BARS ─── */
+    .pbar-wrap { display: flex; align-items: center; gap: 12px; }
+    .pbar { flex: 1; height: 4px; background: var(--track); border-radius: 99px; overflow: hidden; }
+    .pbar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--indigo), var(--indigo-bright)); transition: width .9s cubic-bezier(.16,1,.3,1); }
+
+    /* ─── FORMS ─── */
+    label {
+      display: block; font-size: 10.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-3); margin-bottom: 7px;
+    }
+    input, select, textarea {
+      font-family: inherit; font-size: 13.5px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-bd);
+      color: var(--text); padding: 10px 14px;
+      border-radius: 8px; outline: none; width: 100%;
+      transition: border-color .15s, background .15s;
+    }
+    input:focus, select:focus { border-color: var(--indigo-bright); background: rgba(139,92,246,0.06); }
+    input::placeholder, select::placeholder { color: var(--text-3); }
+    .form-group { margin-bottom: 18px; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: inherit; font-size: 13.5px; font-weight: 600;
+      background: linear-gradient(135deg, var(--indigo) 0%, #D4AF63 100%);
+      color: white; border: none; padding: 11px 24px;
+      border-radius: 8px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(139,92,246,0.25);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(139,92,246,0.4); }
+
+    /* ─── FILTER CHIPS ─── */
+    .chip-row { display: flex; gap: 6px; }
+    .filter-chip {
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      background: transparent; border: 1px solid var(--card-bd);
+      color: var(--text-2); padding: 7px 14px; border-radius: 99px;
+      cursor: pointer; transition: all .15s;
+    }
+    .filter-chip:hover { border-color: var(--hover-bd); color: var(--text); }
+    .filter-chip.active {
+      background: rgba(139,92,246,0.14); border-color: var(--indigo-bright);
+      color: var(--indigo-bright);
+    }
+
+    /* ─── CALLOUTS ─── */
+    .callout {
+      padding: 12px 16px; border-radius: 8px; font-size: 13px;
+      border: 1px solid var(--card-bd); background: var(--card);
+    }
+    .callout.warn  { background: var(--coral-dim); border-color: rgba(240,71,63,0.2); color: var(--coral); }
+    .callout.ok    { background: var(--mint-dim);  border-color: rgba(23,197,107,0.2);  color: var(--mint); }
+    .callout.info  { background: rgba(139,92,246,0.10); border-color: rgba(139,92,246,0.2); color: var(--indigo-bright); }
+
+    /* ─── BACK ─── */
+    a.back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; color: var(--text-3); text-decoration: none;
+      margin-bottom: 22px; transition: color .12s;
+    }
+    a.back:hover { color: var(--text-2); }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--hover-bd); border-radius: 99px; }
+
+    /* ─── THEME TOGGLE ─── */
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; flex-shrink: 0;
+      background: var(--card); border: 1px solid var(--card-bd);
+      border-radius: 8px; cursor: pointer; color: var(--text-2);
+      transition: color .12s, border-color .12s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--hover-bd); }
+    .theme-toggle svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun  { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+  </style>
+  <script>
+    (function() {
+      var saved = localStorage.getItem('verax-theme');
+      if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    })();
+  </script>
+</head>
+<body>
+
+{% if session_user %}
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-wordmark">
+      <svg class="brand-mark" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L21 7V17L12 22L3 17V7L12 2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M8 12.5L10.8 15.3L16 9.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      VERAX
+    </div>
+    <div class="brand-sub">Risk Console</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Workspace</div>
+    <a href="/dashboard" class="nav-item {% if active=='dashboard' %}active{% endif %}">
+      <svg viewBox="0 0 16 16"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.2"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1.2"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1.2"/><rect x="9" y="9" width="5.5" height="5.5" rx="1.2"/></svg>
+      Overview
+    </a>
+    <a href="/transactions" class="nav-item {% if active=='transactions' %}active{% endif %}">
+      <svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Transactions
+    </a>
+    <div class="nav-section" style="margin-top:8px;">Reports</div>
+    <a href="/analytics" class="nav-item {% if active=='analytics' %}active{% endif %}">
+      <svg viewBox="0 0 16 16"><path d="M2 13.5V9.5M5.5 13.5V4.5M9 13.5V7M12.5 13.5V2"/></svg>
+      Analytics
+    </a>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-av">{{ session_user[0].upper() }}</div>
+      <div style="min-width:0;">
+        <div class="user-name">{{ session_user }}</div>
+        <div class="user-role">Risk Analyst</div>
+      </div>
+    </div>
+    <a href="/logout" class="signout">
+      <svg viewBox="0 0 16 16"><path d="M10 2h4v12h-4M6.5 5.5L2.5 8l4 2.5M2.5 8h8.5"/></svg>
+      Sign out
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<main>
+  {% if session_user %}
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-ctx">{% block eyebrow %}VERAX{% endblock %}</div>
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="live-pill">
+        <div class="live-dot"></div>
+        Live · {{ session_user }}
+      </div>
+      <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark mode" title="Toggle light / dark mode">
+        <svg class="icon-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.3v1.6M8 13v1.6M2.6 8H1M15 8h-1.6M3.7 3.7l1.1 1.1M11.2 11.2l1.1 1.1M12.3 3.7l-1.1 1.1M4.8 11.2l-1.1 1.1"/></svg>
+        <svg class="icon-moon" viewBox="0 0 16 16"><path d="M13.7 9.9A5.6 5.6 0 016.1 2.3 5.9 5.9 0 1013.7 9.9z"/></svg>
+      </button>
+    </div>
+  </div>
+  {% endif %}
+  <div class="page-wrap">
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script>
+  function toggleTheme() {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('verax-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('verax-theme', 'light');
+    }
+  }
+
+  // Reusable count-up animation for any element with a data-countup value.
+  // Runs once on page load - used on stat-tile numbers across pages.
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-countup]').forEach(function(el) {
+      var target = parseFloat(el.getAttribute('data-countup'));
+      if (isNaN(target)) return;
+      var isDecimal = el.getAttribute('data-countup').indexOf('.') !== -1;
+      var frame = 0, totalFrames = 30;
+      (function step() {
+        frame++;
+        var value = target * Math.min(frame / totalFrames, 1);
+        el.textContent = isDecimal ? value.toFixed(2) : Math.round(value);
+        if (frame < totalFrames) requestAnimationFrame(step);
+      })();
+    });
+  });
+</script>
+
+</body>
+</html>

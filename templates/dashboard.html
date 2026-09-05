@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Overview — VERAX{% endblock %}
+{% block eyebrow %}Risk Console{% endblock %}
+{% block page_title %}Overview{% endblock %}
+{% block content %}
+
+<style>
+  /* Score bars */
+  .score-segs { display:flex; gap:3px; }
+  .seg { width:18px; height:4px; border-radius:2px; background:var(--track); }
+  .seg.hi  { background: var(--coral); }
+  .seg.med { background: var(--amber); }
+  .seg.lo  { background: var(--mint); }
+
+  /* Risk numbers in breakdown */
+  .rnum {
+    font-family: 'Inter', sans-serif; font-size: 32px; font-weight: 800;
+    line-height: 1; letter-spacing: -0.5px;
+  }
+
+  /* Distribution bar */
+  .dist-bar { display:flex; height:6px; border-radius:4px; overflow:hidden; gap:2px; margin-top:14px; }
+  .dist-seg { border-radius:3px; }
+
+  /* Two-col layout */
+  .db-grid { display:grid; grid-template-columns:1fr 300px; gap:18px; }
+  .db-col  { display:flex; flex-direction:column; gap:18px; }
+
+  /* Alert banner */
+  .alert-banner {
+    display:flex; align-items:center; gap:14px;
+    background: var(--coral-dim); border:1px solid rgba(240,71,63,0.25);
+    border-radius:10px; padding:14px 20px; margin-bottom:22px;
+  }
+  .alert-icon { font-size:20px; flex-shrink:0; }
+  .alert-text { font-size:13px; }
+  .alert-title { font-weight:600; color:var(--coral); margin-bottom:2px; font-size:12px; letter-spacing:0.5px; text-transform:uppercase; }
+</style>
+
+<!-- Heading -->
+<div class="page-eyebrow">Risk Overview</div>
+<div class="page-title">Transaction Pipeline</div>
+<div class="page-sub">{{ counts.HIGH + counts.MEDIUM + counts.LOW }} transactions scored · {{ counts.HIGH }} high · {{ counts.MEDIUM }} medium · {{ counts.LOW }} clean</div>
+
+{% if counts.HIGH > 0 %}
+<div class="alert-banner">
+  <div class="alert-icon">⚠️</div>
+  <div class="alert-text">
+    <div class="alert-title">Action required</div>
+    {{ counts.HIGH }} high-risk transaction{% if counts.HIGH != 1 %}s{% endif %} need immediate analyst review.
+  </div>
+  <a href="/transactions" style="margin-left:auto; font-size:12.5px; color:var(--coral); text-decoration:none; font-weight:600; white-space:nowrap;">Review now</a>
+</div>
+{% endif %}
+
+<!-- Stat tiles -->
+<div class="stat-grid">
+  <a href="/transactions?level=HIGH" class="stat-tile tile-coral">
+    <div class="stat-tile-top">High Risk</div>
+    <div class="stat-tile-val" style="color:var(--coral);" data-countup="{{ counts.HIGH }}">0</div>
+    <div class="stat-tile-sub">Flagged for review →</div>
+  </a>
+  <a href="/transactions?level=MEDIUM" class="stat-tile tile-amber">
+    <div class="stat-tile-top">Medium Risk</div>
+    <div class="stat-tile-val" style="color:var(--amber);" data-countup="{{ counts.MEDIUM }}">0</div>
+    <div class="stat-tile-sub">Monitor closely →</div>
+  </a>
+  <a href="/transactions?level=LOW" class="stat-tile tile-mint">
+    <div class="stat-tile-top">Low Risk</div>
+    <div class="stat-tile-val" style="color:var(--mint);" data-countup="{{ counts.LOW }}">0</div>
+    <div class="stat-tile-sub">Operating normally →</div>
+  </a>
+  <a href="/analytics" class="stat-tile tile-indigo">
+    <div class="stat-tile-top">F1 Score</div>
+    <div class="stat-tile-val" style="color:var(--indigo-bright);" data-countup="{{ "%.2f"|format(metrics.f1) }}">0.00</div>
+    <div class="stat-tile-sub">P {{ "%.2f"|format(metrics.precision) }} · R {{ "%.2f"|format(metrics.recall) }} →</div>
+  </a>
+</div>
+
+<div class="db-grid">
+  <div class="db-col">
+
+    <!-- Flagged transactions -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label">Flagged Transactions</div>
+        <a href="/transactions" class="card-action">View all</a>
+      </div>
+      {% if top_risk %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User</th>
+            <th>Amount</th>
+            <th>Score</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tx in top_risk %}
+          <tr class="clickable" onclick="location.href='/transaction/{{ tx.tx_id }}'">
+            <td class="mono" style="color:var(--text-3);">{{ tx.tx_id }}</td>
+            <td style="color:var(--text); font-weight:500;">{{ tx.user_name }}</td>
+            <td class="mono" style="color:var(--text); font-weight:600;">₹{{ "{:,}".format(tx.amount|int) }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="score-segs">
+                  {% for i in range(1,6) %}
+                  <div class="seg {% if i <= tx.risk.score %}{% if tx.risk.level=='HIGH' %}hi{% elif tx.risk.level=='MEDIUM' %}med{% else %}lo{% endif %}{% endif %}"></div>
+                  {% endfor %}
+                </div>
+                <span class="mono" style="font-size:11px; color:var(--text-3);">{{ tx.risk.score }}/5</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge {{ tx.risk.level }}"><span class="badge-pip"></span>{{ tx.risk.level }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="card-body">
+        <div class="callout ok">All clear — no flagged transactions at this time.</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Model performance -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label">Model Performance</div>
+        <a href="/analytics" class="card-action">Full report</a>
+      </div>
+      <div class="card-body" style="padding-top:10px; padding-bottom:10px;">
+        <div class="data-row">
+          <div class="data-key">Precision</div>
+          <div>
+            <div class="pbar-wrap">
+              <div class="pbar"><div class="pbar-fill" style="width:{{ (metrics.precision*100)|int }}%;"></div></div>
+              <span class="mono" style="font-size:13px; color:var(--indigo-bright); font-weight:600; min-width:36px; text-align:right;">{{ "%.2f"|format(metrics.precision) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="data-key">Recall</div>
+          <div>
+            <div class="pbar-wrap">
+              <div class="pbar"><div class="pbar-fill" style="width:{{ (metrics.recall*100)|int }}%;"></div></div>
+              <span class="mono" style="font-size:13px; color:var(--indigo-bright); font-weight:600; min-width:36px; text-align:right;">{{ "%.2f"|format(metrics.recall) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="data-key">F1 Score</div>
+          <div>
+            <div class="pbar-wrap">
+              <div class="pbar"><div class="pbar-fill" style="width:{{ (metrics.f1*100)|int }}%;"></div></div>
+              <span class="mono" style="font-size:13px; color:var(--indigo-bright); font-weight:600; min-width:36px; text-align:right;">{{ "%.2f"|format(metrics.f1) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="data-key">Est. FP cost</div>
+          <div class="data-val mono" style="color:var(--coral);">₹{{ "{:,}".format(metrics.fp_cost|int) }}</div>
+        </div>
+        <div class="data-row">
+          <div class="data-key">True positives</div>
+          <div class="data-val mono">{{ metrics.tp }}</div>
+        </div>
+        <div class="data-row">
+          <div class="data-key">False positives</div>
+          <div class="data-val mono" style="color:var(--coral);">{{ metrics.fp }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <div class="db-col">
+
+    <!-- Risk breakdown -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-label">Risk Breakdown</div>
+      </div>
+      <div class="card-body" style="padding-top:8px; padding-bottom:14px;">
+        {% set total = counts.HIGH + counts.MEDIUM + counts.LOW %}
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--coral);"></div>
+              <span style="font-size:13px;color:var(--text-2);">High risk</span>
+            </div>
+            <span class="rnum" style="color:var(--coral);">{{ counts.HIGH }}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);"></div>
+              <span style="font-size:13px;color:var(--text-2);">Medium risk</span>
+            </div>
+            <span class="rnum" style="color:var(--amber);">{{ counts.MEDIUM }}</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--mint);"></div>
+              <span style="font-size:13px;color:var(--text-2);">Low risk</span>
+            </div>
+            <span class="rnum" style="color:var(--mint);">{{ counts.LOW }}</span>
+          </div>
+        </div>
+        {% if total > 0 %}
+        {% set hw = ((counts.HIGH / total * 100)|round|int) %}
+        {% set mw = ((counts.MEDIUM / total * 100)|round|int) %}
+        {% set lw = 100 - hw - mw %}
+        <div class="dist-bar">
+          {% if hw > 0 %}<div class="dist-seg" style="width:{{ hw }}%;background:var(--coral);"></div>{% endif %}
+          {% if mw > 0 %}<div class="dist-seg" style="width:{{ mw }}%;background:var(--amber);"></div>{% endif %}
+          {% if lw > 0 %}<div class="dist-seg" style="width:{{ lw }}%;background:var(--mint);"></div>{% endif %}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text-3);">
+          <span>{{ hw }}% high risk</span><span>{{ total }} total</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="card">
+      <div class="card-head"><div class="card-label">Quick Actions</div></div>
+      <div class="card-body" style="padding-top:4px;padding-bottom:4px;">
+        <ul class="plus-list">
+          <li><a href="/transactions">Browse transaction feed</a></li>
+          <li><a href="/analytics">View evaluation report</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Detection rules -->
+    <div class="card">
+      <div class="card-head"><div class="card-label">Detection Rules</div></div>
+      <div class="card-body" style="padding-top:4px;padding-bottom:4px;">
+        <ul class="plus-list">
+          <li>Amount spike vs user average</li>
+          <li>Transaction velocity burst</li>
+          <li>Unknown device fingerprint</li>
+          <li>Odd-hour timestamp</li>
+          <li>Suspiciously round amount</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- /right -->
+</div>
+
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Transactions — VERAX{% endblock %}
+{% block eyebrow %}Risk Console{% endblock %}
+{% block page_title %}Transactions{% endblock %}
+{% block content %}
+
+<div class="page-eyebrow">All Transactions</div>
+<div class="page-title">Transaction Feed</div>
+<div class="page-sub">{{ transactions|length }} transactions scored by the rule engine. Click any row for the full breakdown.</div>
+
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:22px;">
+  <a href="#" onclick="setLevelFilter('HIGH'); return false;" class="stat-tile tile-coral">
+    <div class="stat-tile-top">High Risk</div>
+    <div class="stat-tile-val" style="color:var(--coral);" data-countup="{{ counts.HIGH }}">0</div>
+  </a>
+  <a href="#" onclick="setLevelFilter('MEDIUM'); return false;" class="stat-tile tile-amber">
+    <div class="stat-tile-top">Medium Risk</div>
+    <div class="stat-tile-val" style="color:var(--amber);" data-countup="{{ counts.MEDIUM }}">0</div>
+  </a>
+  <a href="#" onclick="setLevelFilter('LOW'); return false;" class="stat-tile tile-mint">
+    <div class="stat-tile-top">Low Risk</div>
+    <div class="stat-tile-val" style="color:var(--mint);" data-countup="{{ counts.LOW }}">0</div>
+  </a>
+  <a href="#" onclick="setLevelFilter('ALL'); return false;" class="stat-tile">
+    <div class="stat-tile-top">Total</div>
+    <div class="stat-tile-val" style="color:var(--text);" data-countup="{{ transactions|length }}">0</div>
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div class="card-label">All Records</div>
+  </div>
+  <div style="padding:14px 22px; border-bottom:1px solid var(--divider); display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <input type="text" id="filterBox" placeholder="Filter by user, device, or transaction ID…" onkeyup="filterRows()" style="max-width:340px; flex:1;">
+    <div class="chip-row" id="chipRow">
+      <button type="button" class="filter-chip active" data-level="ALL" onclick="setLevelFilter('ALL')">All</button>
+      <button type="button" class="filter-chip" data-level="HIGH" onclick="setLevelFilter('HIGH')">High</button>
+      <button type="button" class="filter-chip" data-level="MEDIUM" onclick="setLevelFilter('MEDIUM')">Medium</button>
+      <button type="button" class="filter-chip" data-level="LOW" onclick="setLevelFilter('LOW')">Low</button>
+    </div>
+  </div>
+  <table id="txTable">
+    <thead>
+      <tr>
+        <th>Transaction</th>
+        <th>User</th>
+        <th>Amount</th>
+        <th>Device</th>
+        <th>Time</th>
+        <th>Score</th>
+        <th>Risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tx in transactions %}
+      <tr class="clickable tx-row" data-level="{{ tx.risk.level }}" onclick="location.href='/transaction/{{ tx.tx_id }}'">
+        <td class="mono" style="font-size:12px; color:var(--text-3);">{{ tx.tx_id }}</td>
+        <td style="font-weight:500; color:var(--text);">{{ tx.user_name }}</td>
+        <td class="mono" style="font-weight:600; color:var(--text);">₹{{ "{:,}".format(tx.amount|int) }}</td>
+        <td class="mono" style="font-size:12px;">{{ tx.device_id }}</td>
+        <td class="mono" style="font-size:12px;">{{ tx.timestamp[11:16] if tx.timestamp|length > 10 else tx.timestamp }}</td>
+        <td class="mono" style="color:var(--text-2);">{{ tx.risk.score }}/5</td>
+        <td><span class="badge {{ tx.risk.level }}"><span class="badge-pip"></span>{{ tx.risk.level }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  var currentLevel = 'ALL';
+
+  function applyFilters() {
+    const q = document.getElementById('filterBox').value.toLowerCase();
+    document.querySelectorAll('#txTable .tx-row').forEach(r => {
+      const matchesText = r.textContent.toLowerCase().includes(q);
+      const matchesLevel = currentLevel === 'ALL' || r.getAttribute('data-level') === currentLevel;
+      r.style.display = (matchesText && matchesLevel) ? '' : 'none';
+    });
+  }
+  function filterRows() { applyFilters(); }
+
+  function setLevelFilter(level) {
+    currentLevel = level;
+    document.querySelectorAll('.filter-chip').forEach(c => {
+      c.classList.toggle('active', c.getAttribute('data-level') === level);
+    });
+    applyFilters();
+    const url = new URL(window.location);
+    if (level === 'ALL') url.searchParams.delete('level'); else url.searchParams.set('level', level);
+    window.history.replaceState({}, '', url);
+  }
+
+  // Pick up ?level=HIGH etc. from the URL on load (e.g. clicked from the Overview stat tiles)
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const level = params.get('level');
+    if (level && ['HIGH', 'MEDIUM', 'LOW'].includes(level.toUpperCase())) {
+      setLevelFilter(level.toUpperCase());
+    }
+  });
+</script>
+{% endblock %}

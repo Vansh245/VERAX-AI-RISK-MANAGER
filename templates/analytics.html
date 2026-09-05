@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Analytics — VERAX{% endblock %}
+{% block eyebrow %}Reports{% endblock %}
+{% block page_title %}Model Evaluation{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:20px;">
+  <div class="page-eyebrow">Evaluation</div>
+  <div class="page-title">Model Evaluation</div>
+  <div class="page-sub">Measured against labeled ground-truth on the synthetic test set — see <span class="mono" style="font-size:12px; color:var(--indigo-bright);">evaluate.py</span>.</div>
+</div>
+
+<!-- Stat tiles -->
+<div class="stat-grid" style="margin-bottom:24px;">
+  <div class="stat-tile" style="border-top:2px solid var(--indigo-bright);">
+    <div class="stat-tile-top">Precision</div>
+    <div class="stat-tile-val" style="color:var(--indigo-bright);">{{ "%.2f"|format(metrics.precision) }}</div>
+    <div class="stat-tile-sub">Of flagged, how many were real fraud</div>
+  </div>
+  <div class="stat-tile" style="border-top:2px solid var(--indigo-bright);">
+    <div class="stat-tile-top">Recall</div>
+    <div class="stat-tile-val" style="color:var(--indigo-bright);">{{ "%.2f"|format(metrics.recall) }}</div>
+    <div class="stat-tile-sub">Of real fraud, how many we caught</div>
+  </div>
+  <div class="stat-tile" style="border-top:2px solid var(--indigo-bright);">
+    <div class="stat-tile-top">F1 Score</div>
+    <div class="stat-tile-val" style="color:var(--indigo-bright);">{{ "%.2f"|format(metrics.f1) }}</div>
+    <div class="stat-tile-sub">Harmonic mean of P &amp; R</div>
+  </div>
+  <div class="stat-tile" style="border-top:2px solid var(--coral);">
+    <div class="stat-tile-top">Est. FP Cost</div>
+    <div class="stat-tile-val" style="color:var(--coral);">₹{{ "{:,}".format(metrics.fp_cost|int) }}</div>
+    <div class="stat-tile-sub">₹{{ metrics.cost_per_fp }} assumed per false positive</div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px;">
+
+  <!-- Confusion matrix -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-label">Confusion Matrix</div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Predicted Fraud</th>
+            <th>Predicted Legit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600; color:var(--text-2); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Actually fraud</td>
+            <td class="mono" style="color:var(--mint); font-weight:600;">{{ metrics.tp }} <span style="color:var(--text-3); font-weight:400;">TP</span></td>
+            <td class="mono" style="color:var(--coral); font-weight:600;">{{ metrics.fn }} <span style="color:var(--text-3); font-weight:400;">FN</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600; color:var(--text-2); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Actually legit</td>
+            <td class="mono" style="color:var(--amber); font-weight:600;">{{ metrics.fp }} <span style="color:var(--text-3); font-weight:400;">FP</span></td>
+            <td class="mono" style="color:var(--text-2); font-weight:600;">{{ metrics.tn }} <span style="color:var(--text-3); font-weight:400;">TN</span></td>
+          </tr>
+        </tbody>
+      </table>
+      {% if metrics.fn > 0 %}
+      <div class="callout warn" style="margin-top:14px;">
+        {{ metrics.fn }} real fraud case(s) missed — disclosed honestly. See README for the specific pattern and proposed fix.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- How the metrics are defined -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-label">How to Read These Numbers</div>
+    </div>
+    <div class="card-body" style="padding-top:4px; padding-bottom:8px;">
+      <div class="data-row">
+        <div class="data-key">Precision</div>
+        <div class="data-val">Of everything flagged, the share that was confirmed fraud</div>
+      </div>
+      <div class="data-row">
+        <div class="data-key">Recall</div>
+        <div class="data-val">Of all confirmed fraud, the share the engine actually caught</div>
+      </div>
+      <div class="data-row">
+        <div class="data-key">False positive cost</div>
+        <div class="data-val">Estimated analyst time spent reviewing a flag that wasn't fraud</div>
+      </div>
+      <div class="data-row">
+        <div class="data-key">Ground truth</div>
+        <div class="data-val">Labels come from the synthetic dataset, not the model's own output</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Per-transaction table -->
+<div class="card">
+  <div class="card-head">
+    <div class="card-label">Per-Transaction Outcomes</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Transaction</th>
+        <th>Predicted</th>
+        <th>Outcome</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in metrics.details %}
+      <tr>
+        <td class="mono" style="font-size:12px; color:var(--text-3);">{{ d.tx_id }}</td>
+        <td><span class="badge {{ d.level }}"><span class="badge-pip"></span>{{ d.level }}</span></td>
+        <td style="font-size:12.5px; color:var(--text-2);">{{ d.outcome }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,263 @@
+[
+  {
+    "tx_id": "TX0001",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 1300.39,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T09:47:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0002",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 1038.02,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T12:08:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0003",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 1370.26,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T19:47:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0004",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 1482.37,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T10:37:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0005",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 1143.78,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T09:05:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0006",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 664.95,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T17:38:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0007",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 572.74,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T12:45:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0008",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 871.94,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T17:26:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0009",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 665.81,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T18:17:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0010",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 948.53,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T09:48:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0011",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 5917.46,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T20:27:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0012",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 4520.75,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T11:13:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0013",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 6371.64,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T14:06:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0014",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 3778.24,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T10:22:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0015",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 6042.48,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T18:16:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0016",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 355.28,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T20:29:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0017",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 306.52,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T15:05:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0018",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 309.37,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T19:39:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0019",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 369.38,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T14:36:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0020",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 244.61,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T10:02:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0021",
+    "user_id": "U001",
+    "user_name": "Aarav Shah",
+    "amount": 45000,
+    "device_id": "deviceA",
+    "timestamp": "2026-09-01T14:10:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0022",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 950,
+    "device_id": "deviceX-unknown",
+    "timestamp": "2026-09-01T03:22:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0023",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 50000,
+    "device_id": "deviceZ-unknown",
+    "timestamp": "2026-09-01T15:00:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0024",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 300,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T18:00:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0025",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 320,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T18:02:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0026",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 340,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T18:04:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0027",
+    "user_id": "U004",
+    "user_name": "Sara Khan",
+    "amount": 360,
+    "device_id": "deviceD",
+    "timestamp": "2026-09-01T18:06:00",
+    "is_actually_fraud": true
+  },
+  {
+    "tx_id": "TX0028",
+    "user_id": "U003",
+    "user_name": "Rohan Mehta",
+    "amount": 42000,
+    "device_id": "deviceC",
+    "timestamp": "2026-09-01T13:00:00",
+    "is_actually_fraud": false
+  },
+  {
+    "tx_id": "TX0029",
+    "user_id": "U002",
+    "user_name": "Priya Nair",
+    "amount": 50,
+    "device_id": "deviceB",
+    "timestamp": "2026-09-01T11:15:00",
+    "is_actually_fraud": true
+  }
+]

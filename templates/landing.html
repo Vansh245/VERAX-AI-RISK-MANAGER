@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='5' fill='%230D1210'/><path d='M12 3.2L19.5 7.4V16.6L12 20.8L4.5 16.6V7.4L12 3.2Z' stroke='%23C9A24B' stroke-width='1.7' stroke-linejoin='round' fill='none'/><path d='M8.3 12.3L10.7 14.9L15.6 9.2' stroke='%23E3BE6E' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+  <title>Verax — Explainable transaction risk review</title>
+  <meta name="description" content="Verax scores payment transactions against explainable risk rules and writes a plain-language reason for every flag.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:     #0B0E14;
+      --indigo: #8B5CF6;
+      --indigo-bright: #A78BFA;
+      --coral:  #F0473F;
+      --mint:   #17C56B;
+      --text:   #EDEFF3;
+      --muted:  #9AA3B5;
+      --card:   #131822;
+      --border: rgba(255,255,255,0.08);
+    }
+    [data-theme="light"] {
+      --bg:     #F5F7FA;
+      --indigo: #7C3AED;
+      --indigo-bright: #8B5CF6;
+      --coral:  #DC3730;
+      --mint:   #109050;
+      --text:   #10141C;
+      --muted:  #48505F;
+      --card:   #FFFFFF;
+      --border: rgba(15,23,42,0.09);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── BACKGROUND MESH GRADIENT ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(240,71,63,0.15) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 60% 20%, rgba(23,197,107,0.08) 0%, transparent 50%);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 60px; height: 64px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      background: rgba(13,18,16,0.7);
+    }
+    .theme-toggle-lite {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); cursor: pointer; margin-right: 6px;
+    }
+    .theme-toggle-lite:hover { border-color: var(--indigo-bright); }
+    .nav-logo {
+      font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 800;
+      color: var(--text); letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .nav-logo svg { color: var(--indigo-bright); }
+    .nav-cta {
+      display: flex; gap: 12px; align-items: center;
+    }
+    .btn-ghost {
+      font-size: 13.5px; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      padding: 8px 18px; border-radius: 8px;
+      transition: color .15s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+    .btn-primary {
+      font-size: 13.5px; font-weight: 600;
+      color: var(--bg); background: var(--text);
+      text-decoration: none; padding: 9px 22px;
+      border-radius: 8px; transition: opacity .15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { opacity: .85; }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 160px 60px 100px;
+      max-width: 1200px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 14px; border-radius: 99px;
+      border: 1px solid rgba(139,92,246,0.4);
+      background: rgba(139,92,246,0.12);
+      font-size: 12px; font-weight: 600; color: var(--indigo-bright);
+      margin-bottom: 28px; letter-spacing: 0.3px;
+    }
+    .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+    .hero-heading {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(52px, 7vw, 90px);
+      font-weight: 800; line-height: 1;
+      letter-spacing: -3px; color: var(--text);
+      margin-bottom: 28px;
+    }
+    .hero-heading .accent-indigo { color: var(--indigo-bright); }
+    .hero-heading .accent-coral  { color: var(--coral); }
+    .hero-sub {
+      font-size: 18px; line-height: 1.7; color: var(--muted);
+      max-width: 560px; margin-bottom: 44px;
+    }
+    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .btn-hero {
+      font-size: 15px; font-weight: 600; text-decoration: none;
+      padding: 14px 32px; border-radius: 10px; transition: all .2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero-primary {
+      background: linear-gradient(135deg, var(--indigo) 0%, #D4AF63 100%);
+      color: white; box-shadow: 0 4px 24px rgba(139,92,246,0.35);
+    }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(139,92,246,0.45); }
+    .btn-hero-secondary {
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-hero-secondary:hover { background: rgba(255,255,255,0.07); }
+
+    /* ─── STATS STRIP ─── */
+    .stats-strip {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 60px 80px;
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .stat-block {
+      background: var(--card); padding: 32px 28px;
+      position: relative; overflow: hidden;
+    }
+    .stat-block::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .stat-block:nth-child(1)::before { background: var(--indigo-bright); }
+    .stat-block:nth-child(2)::before { background: var(--coral); }
+    .stat-block:nth-child(3)::before { background: var(--mint); }
+    .stat-block:nth-child(4)::before { background: #A855F7; }
+    .stat-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 44px; font-weight: 800; line-height: 1;
+      letter-spacing: -0.8px; color: var(--text); margin-bottom: 8px;
+    }
+    .stat-label { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+    /* ─── SECTION ─── */
+    section {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 80px 60px;
+    }
+    .section-eyebrow {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--indigo-bright); margin-bottom: 14px;
+    }
+    .section-heading {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(32px, 4vw, 52px); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.1;
+      color: var(--text); margin-bottom: 18px;
+    }
+    .section-sub {
+      font-size: 16px; color: var(--muted);
+      max-width: 520px; line-height: 1.7; margin-bottom: 56px;
+    }
+
+    /* ─── FEATURE CARDS ─── */
+    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .feat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
+      transition: border-color .2s, transform .2s;
+    }
+    .feat-card:hover { border-color: rgba(139,92,246,0.4); transform: translateY(-4px); }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 18px;
+    }
+    .feat-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+    .feat-body  { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+
+    /* ─── PIPELINE DIAGRAM ─── */
+    .pipeline {
+      display: flex; align-items: stretch; gap: 0;
+    }
+    .pipe-node {
+      flex: 1; position: relative;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 26px 22px;
+    }
+    .pipe-tag {
+      position: absolute; top: 18px; right: 20px;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      color: rgba(255,255,255,0.2);
+    }
+    .pipe-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; border: 1px solid;
+    }
+    .pipe-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+    .pipe-title { font-size: 14.5px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .pipe-body  { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+    .pipe-connector {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; flex-shrink: 0; color: rgba(255,255,255,0.18);
+    }
+    .pipe-connector svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ─── JUDGE CRITERIA GRID ─── */
+    .judge-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .judge-card {
+      border-top: 2px solid; padding: 22px 4px 0;
+    }
+    .judge-icon {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px; background: var(--card); border: 1px solid var(--border);
+    }
+    .judge-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+    .judge-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .judge-body  { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+    .judge-link  { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 600; text-decoration: none; }
+
+    /* ─── TERMINAL PREVIEW ─── */
+    .terminal-wrap {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      margin-bottom: 0;
+    }
+    .terminal-bar {
+      background: rgba(255,255,255,0.05);
+      padding: 12px 20px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red   { background: #FF5F57; }
+    .dot-amber { background: #D9822E; }
+    .dot-green { background: #28C840; }
+    .terminal-title {
+      font-size: 12px; color: var(--muted);
+      margin-left: auto; margin-right: auto;
+    }
+    .terminal-body { padding: 24px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .t-line { display: flex; gap: 16px; margin-bottom: 8px; }
+    .t-id    { color: #A78BFA; min-width: 70px; }
+    .t-high  { color: var(--coral); font-weight: 600; }
+    .t-med   { color: #D9822E; font-weight: 600; }
+    .t-low   { color: var(--mint); font-weight: 600; }
+    .t-amt   { color: var(--muted); }
+    .t-note  { color: rgba(255,255,255,0.35); font-size: 11px; }
+
+    /* ─── CTA BANNER ─── */
+    .cta-banner {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto 80px;
+      padding: 0 60px;
+    }
+    .cta-inner {
+      background: linear-gradient(135deg, rgba(139,92,246,0.18) 0%, rgba(168,85,247,0.12) 50%, rgba(240,71,63,0.10) 100%);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 20px; padding: 60px;
+      text-align: center;
+    }
+    .cta-inner h2 {
+      font-family: 'Inter', sans-serif;
+      font-size: 44px; font-weight: 800; letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .cta-inner p { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 28px 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-brand { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 800; }
+    .footer-note  { font-size: 12px; color: var(--muted); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-12px); }
+    }
+    .float { animation: float 6s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L21 7V17L12 22L3 17V7L12 2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M8 12.5L10.8 15.3L16 9.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    VERAX
+  </div>
+  <div class="nav-cta">
+    <button type="button" class="theme-toggle-lite" onclick="toggleTheme()" aria-label="Toggle light and dark mode">
+      <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.7 3.3l-1 1M4.3 11.7l-1 1M12.7 12.7l-1-1M4.3 4.3l-1-1"/></svg>
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="display:none;"><path d="M14 8.5A6 6 0 1 1 7.5 2 4.7 4.7 0 0 0 14 8.5Z"/></svg>
+    </button>
+    <a href="/login" class="btn-ghost">Sign in</a>
+    <a href="/login" class="btn-primary">Open the console</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Every flag comes with a reason
+  </div>
+  <h1 class="hero-heading">
+    Every transaction<br>
+    has a story.<br>
+    <span class="accent-indigo">Verax reads it</span> <span class="accent-coral">in real time.</span>
+  </h1>
+  <p class="hero-sub">
+    Verax is a rule-based risk engine for payment transactions. It scores every transaction against five explainable signals, then writes a plain-language reason for each flag — so a reviewer never has to take a model's word for it.
+  </p>
+  <div class="hero-actions">
+    <a href="/login" class="btn-hero btn-hero-primary">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Launch the console
+    </a>
+    <a href="#how-it-works" class="btn-hero btn-hero-secondary">
+      See how it works
+    </a>
+  </div>
+</div>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stat-block">
+    <div class="stat-val">1.00</div>
+    <div class="stat-label">Precision — zero false accusations</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-val">0.88</div>
+    <div class="stat-label">Recall — catching 7 of 8 fraud cases</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-val">5</div>
+    <div class="stat-label">Explainable detection rules</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-val">0</div>
+    <div class="stat-label">Auto-blocked transactions — humans decide</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-eyebrow">Capabilities</div>
+  <h2 class="section-heading">Risk intelligence,<br>not black-box magic.</h2>
+  <p class="section-sub">Every alert is backed by an explainable rule. AI explains — it never scores, never blocks.</p>
+
+  <div class="feature-grid">
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(139,92,246,0.15);">⚡</div>
+      <div class="feat-title">Rule-Based Scoring</div>
+      <div class="feat-body">5 transparent rules: amount spikes, velocity bursts, unknown devices, odd hours, round amounts. No hidden weights.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(240,71,63,0.15);">🛡️</div>
+      <div class="feat-title">Defense-Only Logic</div>
+      <div class="feat-body">VERAX flags for human review. No transaction is ever auto-blocked. Your analysts stay in control — always.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(23,197,107,0.12);">🤖</div>
+      <div class="feat-title">AI Explainer (Claude)</div>
+      <div class="feat-body">Claude translates each flagged transaction into plain English for your review team — clear rationale, not just a score.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(168,85,247,0.15);">📊</div>
+      <div class="feat-title">Honest Metrics</div>
+      <div class="feat-body">Precision, recall, F1, and estimated false-positive cost — all measured against labeled ground truth. No cherry-picking.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(245,165,36,0.12);">🗂️</div>
+      <div class="feat-title">Full Audit Trail</div>
+      <div class="feat-body">Every scored transaction keeps its triggered rules and generated explanation, so any flag can be reviewed after the fact.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:rgba(139,92,246,0.15);">📋</div>
+      <div class="feat-title">Failure Recovery</div>
+      <div class="feat-body">We document what the system misses — slow-burn fraud is still a gap. Honesty is a feature, not a bug.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" style="padding-top:20px;">
+  <div class="section-eyebrow">Architecture</div>
+  <h2 class="section-heading">Built as a pipeline,<br>not a black box.</h2>
+  <p class="section-sub" style="margin-bottom:48px;">Four stages, each auditable on its own. Nothing happens between them that a reviewer can't see.</p>
+
+  <div class="pipeline">
+    <div class="pipe-node">
+      <div class="pipe-tag">01</div>
+      <div class="pipe-icon" style="color:var(--indigo-bright); background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.3);">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10M8 9l4 4 4-4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+      </div>
+      <div class="pipe-title">Transaction ingested</div>
+      <div class="pipe-body">Arrives with user ID, amount, device, and timestamp — nothing else.</div>
+    </div>
+    <div class="pipe-connector"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 4l4 4-4 4"/></svg></div>
+    <div class="pipe-node">
+      <div class="pipe-tag">02</div>
+      <div class="pipe-icon" style="color:var(--coral); background:rgba(240,71,63,0.12); border-color:rgba(240,71,63,0.3);">
+        <svg viewBox="0 0 24 24"><path d="M4 7l1.5 1.5L8 6"/><path d="M4 13l1.5 1.5L8 11"/><path d="M4 19l1.5 1.5L8 17"/><path d="M11 7h9M11 13h9M11 19h9"/></svg>
+      </div>
+      <div class="pipe-title">5 rules evaluated</div>
+      <div class="pipe-body">Amount spike, velocity, device, odd-hour, and round-amount checks. All visible in code.</div>
+    </div>
+    <div class="pipe-connector"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 4l4 4-4 4"/></svg></div>
+    <div class="pipe-node">
+      <div class="pipe-tag">03</div>
+      <div class="pipe-icon" style="color:var(--mint); background:rgba(23,197,107,0.12); border-color:rgba(23,197,107,0.3);">
+        <svg viewBox="0 0 24 24"><path d="M4 15a8 8 0 1116 0"/><path d="M12 15l3.5-4.5"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="pipe-title">Risk scored 0–5</div>
+      <div class="pipe-body">Below 2 passes through silently. 2 and above gets queued for a human to look at.</div>
+    </div>
+    <div class="pipe-connector"><svg viewBox="0 0 16 16"><path d="M2 8h11M9 4l4 4-4 4"/></svg></div>
+    <div class="pipe-node">
+      <div class="pipe-tag">04</div>
+      <div class="pipe-icon" style="color:#A855F7; background:rgba(168,85,247,0.12); border-color:rgba(168,85,247,0.3);">
+        <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="3"/><path d="M9 20l2.5-4"/></svg>
+      </div>
+      <div class="pipe-title">Claude explains it</div>
+      <div class="pipe-body">Plain-English rationale for the analyst. Claude never scores or blocks — the rules already did.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRINCIPLES -->
+<section style="padding-top:0;">
+  <div class="section-eyebrow">Why rules, not a model</div>
+  <h2 class="section-heading">The score should never<br>be a mystery.</h2>
+  <p class="section-sub">Four decisions that shaped Verax, and why each one holds up under scrutiny.</p>
+
+  <div class="judge-grid">
+    <div class="judge-card" style="border-color:var(--indigo-bright);">
+      <div class="judge-icon" style="color:var(--indigo-bright);">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none"/></svg>
+      </div>
+      <div class="judge-title">A real, recurring cost</div>
+      <div class="judge-body">Payment fraud isn't a toy problem picked for a demo. Any platform that moves money deals with it every day.</div>
+    </div>
+    <div class="judge-card" style="border-color:var(--coral);">
+      <div class="judge-icon" style="color:var(--coral);">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+      </div>
+      <div class="judge-title">Nothing runs unseen</div>
+      <div class="judge-body">A structured Flask app and a rule engine you can read top to bottom in five minutes. No hidden weights, no dead code.</div>
+    </div>
+    <div class="judge-card" style="border-color:var(--mint);">
+      <div class="judge-icon" style="color:var(--mint);">
+        <svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2"/><circle cx="9.5" cy="13" r="1" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/><path d="M12 8V4M9.5 4h5"/></svg>
+      </div>
+      <div class="judge-title">AI explains, rules decide</div>
+      <div class="judge-body">The language model writes the rationale for a reviewer. It never scores, flags, or blocks a transaction on its own.</div>
+    </div>
+    <div class="judge-card" style="border-color:#A855F7;">
+      <div class="judge-icon" style="color:#A855F7;">
+        <svg viewBox="0 0 24 24"><path d="M5 3v18"/><path d="M5 4h11l-2 3.5L16 11H5"/></svg>
+      </div>
+      <div class="judge-title">Limitations, stated plainly</div>
+      <div class="judge-body">One false negative on the labeled test set — a slow-burn pattern the current rules miss — shown in Analytics, not hidden.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL PREVIEW -->
+<section style="padding-top:0;">
+  <div class="terminal-wrap">
+    <div class="terminal-bar">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-amber"></span>
+      <span class="dot dot-green"></span>
+      <span class="terminal-title">verax · live transaction feed</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-id">TX0021</span><span class="t-amt">₹45,000</span><span class="t-med">■ MEDIUM</span><span class="t-note">— amount 5× user avg; velocity burst detected</span></div>
+      <div class="t-line"><span class="t-id">TX0022</span><span class="t-amt">₹950</span><span class="t-med">■ MEDIUM</span><span class="t-note">— unknown device fingerprint</span></div>
+      <div class="t-line"><span class="t-id">TX0023</span><span class="t-amt">₹50,000</span><span class="t-med">■ MEDIUM</span><span class="t-note">— amount 9× user avg; round number flag</span></div>
+      <div class="t-line"><span class="t-id">TX0001</span><span class="t-amt">₹1,300</span><span class="t-low">■ LOW</span><span class="t-note">— within normal range; known device</span></div>
+      <div class="t-line"><span class="t-id">TX0002</span><span class="t-amt">₹1,038</span><span class="t-low">■ LOW</span><span class="t-note">— no signals triggered</span></div>
+      <div class="t-line"><span class="t-id">TX0029</span><span class="t-amt">₹50</span><span class="t-low">■ LOW</span><span class="t-note" style="color:var(--coral);">— FN: missed real fraud (slow-burn pattern)</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-banner">
+  <div class="cta-inner">
+    <h2>Ready to see it live?</h2>
+    <p>Sign in with any email to explore the console.</p>
+    <a href="/login" class="btn-hero btn-hero-primary" style="margin:0 auto; display:inline-flex;">
+      Open the console
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand" style="display:flex; align-items:center; gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--indigo-bright);">
+      <path d="M12 2L21 7V17L12 22L3 17V7L12 2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M8 12.5L10.8 15.3L16 9.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Verax
+  </div>
+  <div class="footer-note">Explainable risk review for payment transactions</div>
+</footer>
+
+<script>
+  (function() {
+    var saved = localStorage.getItem('verax-theme');
+    if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  })();
+  function toggleTheme() {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('verax-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('verax-theme', 'light');
+    }
+    var sun = document.querySelector('.icon-sun');
+    var moon = document.querySelector('.icon-moon');
+    if (sun && moon) {
+      sun.style.display = isLight ? 'block' : 'none';
+      moon.style.display = isLight ? 'none' : 'block';
+    }
+  }
+  (function() {
+    if (localStorage.getItem('verax-theme') === 'light') {
+      var sun = document.querySelector('.icon-sun');
+      var moon = document.querySelector('.icon-moon');
+      if (sun && moon) { sun.style.display = 'none'; moon.style.display = 'block'; }
+    }
+  })();
+</script>
+</body>
+</html>
